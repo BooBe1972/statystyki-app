@@ -2,47 +2,102 @@
 
 const express = require("express");
 const router = express.Router();
-const axios = require("axios");
+
+// Rozbudowane dane mockowe
+const mockData = [
+  { location: "Warszawa", type: "Dom", value: 1000000 },
+  { location: "Kraków", type: "Mieszkanie", value: 500000 },
+  { location: "Warszawa", type: "Mieszkanie", value: 700000 },
+  { location: "Gdańsk", type: "Dom", value: 850000 },
+  { location: "Wrocław", type: "Dom", value: 950000 },
+  { location: "Poznań", type: "Mieszkanie", value: 600000 },
+  { location: "Warszawa", type: "Dom", value: 1200000 },
+  { location: "Kraków", type: "Dom", value: 1100000 },
+  { location: "Gdańsk", type: "Mieszkanie", value: 450000 },
+];
 
 // Endpoint do pobierania ogólnych statystyk
-router.get("/statistics/general", async (req, res) => {
-  try {
-    // Zastąp poniższy URL rzeczywistym URL-em do zewnętrznego API
-    const response = await axios.get("https://api.zamianeoo.pl/statistics");
-    const data = response.data;
+router.get("/statistics/general", (req, res) => {
+  const totalExchanges = mockData.length;
+  const avgValue =
+    mockData.reduce((sum, exchange) => sum + exchange.value, 0) /
+    totalExchanges;
 
-    // Przetwarzanie danych
-    const totalExchanges = data.length;
-    const avgValue =
-      data.reduce((sum, exchange) => sum + exchange.value, 0) / totalExchanges;
-    const popularLocations = {}; // Implementacja logiki popularnych lokalizacji
+  const locationCount = mockData.reduce((acc, curr) => {
+    acc[curr.location] = (acc[curr.location] || 0) + 1;
+    return acc;
+  }, {});
 
-    res.json({
-      totalExchanges,
-      avgValue,
-      popularLocations,
-    });
-  } catch (error) {
-    console.error("Error fetching statistics:", error);
-    res.status(500).json({ error: "Błąd serwera" });
-  }
+  res.json({
+    totalExchanges,
+    avgValue,
+    popularLocations: locationCount,
+  });
 });
 
-// Endpoint do pobierania szczegółowych statystyk
-router.get("/statistics/detailed", async (req, res) => {
-  try {
-    const { location, type, minPrice, maxPrice } = req.query;
-    // Zastąp poniższy URL rzeczywistym URL-em do zewnętrznego API z parametrami
-    const response = await axios.get(
-      `https://api.zamianeoo.pl/statistics?location=${location}&type=${type}&minPrice=${minPrice}&maxPrice=${maxPrice}`
-    );
-    const data = response.data;
+// Endpoint do pobierania szczegółowych statystyk na podstawie filtrów
+router.get("/statistics/detailed", (req, res) => {
+  const { location, type, minPrice, maxPrice } = req.query;
 
-    res.json(data);
-  } catch (error) {
-    console.error("Error fetching detailed statistics:", error);
-    res.status(500).json({ error: "Błąd serwera" });
+  let filteredData = mockData;
+
+  if (location) {
+    filteredData = filteredData.filter((item) => item.location === location);
   }
+
+  if (type) {
+    filteredData = filteredData.filter((item) => item.type === type);
+  }
+
+  if (minPrice) {
+    filteredData = filteredData.filter(
+      (item) => item.value >= Number(minPrice)
+    );
+  }
+
+  if (maxPrice) {
+    filteredData = filteredData.filter(
+      (item) => item.value <= Number(maxPrice)
+    );
+  }
+
+  res.json(filteredData);
 });
 
 module.exports = router;
+
+
+// src/routes/statistics.js
+
+router.get('/statistics/detailed', (req, res) => {
+  const { location, type, minPrice, maxPrice } = req.query;
+
+  // Walidacja danych wejściowych
+  if (minPrice && isNaN(minPrice)) {
+    return res.status(400).json({ error: 'minPrice musi być liczbą' });
+  }
+
+  if (maxPrice && isNaN(maxPrice)) {
+    return res.status(400).json({ error: 'maxPrice musi być liczbą' });
+  }
+
+  let filteredData = mockData;
+
+  if (location) {
+    filteredData = filteredData.filter(item => item.location === location);
+  }
+
+  if (type) {
+    filteredData = filteredData.filter(item => item.type === type);
+  }
+
+  if (minPrice) {
+    filteredData = filteredData.filter(item => item.value >= Number(minPrice));
+  }
+
+  if (maxPrice) {
+    filteredData = filteredData.filter(item => item.value <= Number(maxPrice));
+  }
+
+  res.json(filteredData);
+});
