@@ -15,7 +15,7 @@ router.post("/properties", async (req, res) => {
     });
     res.status(201).json(newProperty);
   } catch (error) {
-    res.status(500).json({ error: "Błąd podczas tworzenia nieruchomości" });
+    res.status(500).json({ error: "Błąd podczas tworzenia nieruchomości post" });
   }
 });
 

@@ -1,12 +1,25 @@
-'use strict';
+// models/property.js
+"use strict";
 module.exports = (sequelize, DataTypes) => {
   const Property = sequelize.define(
     "Property",
     {
-      address: DataTypes.STRING,
-      city: DataTypes.STRING,
-      price: DataTypes.DECIMAL,
-      property_type: DataTypes.STRING,
+      address: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      city: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      price: {
+        type: DataTypes.DECIMAL,
+        allowNull: false,
+      },
+      property_type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -16,7 +29,6 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   Property.associate = function (models) {
-    // associations can be defined here
     Property.hasMany(models.PriceChange, { foreignKey: "property_id" });
   };
 
